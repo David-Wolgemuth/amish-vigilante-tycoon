@@ -1,0 +1,26 @@
+{
+  "name": "amish-vigilante-tycoon",
+  "version": "1.0.0",
+  "description": "Resource Gathering Game",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/David-Wolgemuth/amish-vigilante-tycoon.git"
+  },
+  "author": "david-wolgemuth",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/David-Wolgemuth/amish-vigilante-tycoon/issues"
+  },
+  "homepage": "https://github.com/David-Wolgemuth/amish-vigilante-tycoon#readme",
+  "dependencies": {
+    "browserify": "^13.0.1",
+    "gulp": "^3.9.1",
+    "gulp-util": "^3.0.7",
+    "pixi": "^0.3.1",
+    "vinyl-source-stream": "^1.1.0"
+  }
+}
