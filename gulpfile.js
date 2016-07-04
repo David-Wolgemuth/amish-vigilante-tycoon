@@ -15,9 +15,9 @@ gulp.task("browserify", function() {
 });
 
 gulp.task("watch", function () {
-    gulp.watch("*", ["browserify"]);
+    gulp.watch("**", ["browserify"]);
 });
 
-gulp.task("default", ["watch"]);
+gulp.task("default", ["browserify", "watch"]);
 
 module.exports = gulp;
