@@ -14,7 +14,7 @@ Textures.load()
 .then(function () {
 
     var rows = 128;
-    var cols = 128;
+    var cols = 256;
 
     var map = new Map(rows, cols);
     stage.addChild(map);

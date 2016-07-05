@@ -16,6 +16,7 @@ function IslandLayer (rows, cols)
 
     this.dragging = false;
     this.grid = [];
+    this.islands = [];
 
     this._init();
 }
@@ -31,11 +32,6 @@ IslandLayer.prototype.eachTile = function (callback)
     }
 };
 
-// IslandLayer.prototype.mousedown = function (data)
-// {
-    // console.log(data);
-// };
-
 IslandLayer.prototype._init = function ()
 {
     var row, col;
@@ -46,9 +42,10 @@ IslandLayer.prototype._init = function ()
         }
         this.grid.push(arr);
     }
-    for (var count = 0; count < 24 || Random.chance(70); count++) {
+    for (var count = 0; count < 24 || Random.chance(80); count++) {
         this._createRandomIsland();
     }
+    this._findAllConnectedIslands();
     var self = this;
     this.eachTile(function (tile) {
         self._setEdgeTileTextures(tile);
@@ -89,26 +86,72 @@ IslandLayer.prototype._setEdgeTileTextures = function (tile)
     } else {
         texture = "full";
     }
-    tile.texture = Textures.landGreen[texture];
+    tile.texture = Textures[tile.islandColor][texture];
+};
+
+IslandLayer.prototype._findAllConnectedIslands = function ()
+{
+    var marked = [];
+    for (var i = 0; i < this.grid.length; i++) {
+        marked.push({});
+    }
+    var self = this;
+    for (var row = 0; row < this.rows; row++) {
+        for (var col = 0; col < this.cols; col++) {
+            var tile = this.grid[row][col];
+            if (!tile || marked[row][col]) {
+                continue;
+            }
+            var color = Random.chance(70) ? "landGreen" : "landBlue";
+            var island = [tile];
+            island.color = color;
+            self.islands.push(island);
+            markAllConnections(tile, island, color);
+        }
+    }
+    function markAllConnections (tile, island, color)
+    {
+        if (!tile) {
+            return;
+        }
+        if (marked[tile.row][tile.col]) {
+            return;
+        }
+        marked[tile.row][tile.col] = true;
+        tile.islandColor = color;
+
+        if (self.grid[tile.row - 1]) {
+            markAllConnections(self.grid[tile.row-1][tile.col], island, color);
+        }
+        if (self.grid[tile.row + 1]) {
+            markAllConnections(self.grid[tile.row+1][tile.col], island, color);
+        }
+        markAllConnections(self.grid[tile.row][tile.col - 1], island, color);
+        markAllConnections(self.grid[tile.row][tile.col + 1], island, color);
+    }
 };
 
 IslandLayer.prototype._createRandomIsland = function ()
 {
-    var x = Random.range(0, this.rows);
-    var y = Random.range(0, this.cols);
-    var w = Random.range(2, 24);
-    var h = Random.range(2, 24);
+    var x = Random.range(0, this.cols);
+    var y = Random.range(0, this.rows);
+    var w = Random.range(4, 36);
+    var h = Random.range(4, 36);
 
     for (var row = y; row < y + h; row ++) {
         for (var col = x; col < x + w; col ++) {
-            if (!this.grid[row] || !this.grid[col]) {
+            if (row < 0 || row >= this.grid.length || col < 0 || col >= this.grid[row].length) {
                 continue;
             }
-            var tile = new Tile(col, row);
-            this.grid[row][col] = tile;
-            this.addChild(tile);
-            tile.position.x = col * 64;
-            tile.position.y = row * 64;
+            try {
+                var tile = new Tile(col, row);
+                this.grid[row][col] = tile;
+                this.addChild(tile);
+                tile.position.x = col * 64;
+                tile.position.y = row * 64;
+            } catch (err) {
+                console.log(err, "row:", row, "col:", col);
+            }
         }
     }
 };
