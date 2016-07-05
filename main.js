@@ -20,7 +20,6 @@ Textures.load()
     stage.addChild(map);
     renderer.render(stage);
 
-
     document.addEventListener("mousedown", function (event) {
         map.dragging = true;
     });

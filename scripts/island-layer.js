@@ -1,5 +1,6 @@
 
 var Random = require("./random.js");
+var Sort = require("./sort.js");
 var Tile = require("./tile.js");
 var Textures = require("./textures.js");
 
@@ -46,12 +47,36 @@ IslandLayer.prototype._init = function ()
         this._createRandomIsland();
     }
     this._findAllConnectedIslands();
+    this._sortIslandsBySize();
     var self = this;
     this.eachTile(function (tile) {
         self._setEdgeTileTextures(tile);
     });
 };
+IslandLayer.prototype._sortIslandsBySize = function ()
+{
+    console.log(this.islands);
+    Sort.insertion(this.islands, function (a, b) {
+        return a.length < b.length;
+    });
+    console.log(this.islands);
+    for (var i = 0; i < this.islands.length; i++) {
+        Sort.insertion(this.islands[i], function (a, b) {
+            return a.col + a.row < b.col + b.row;
+        });
+    }
+    var order = 1;
+    for (var i = this.islands.length - 1; i >= 0; i--) {
+        var island = this.islands[i];
+        var centerTile = island[Math.floor(island.length/2)];
 
+        var texture = (order >= 20) ? Textures.cityMarker[0] : Textures.cityMarker[order];
+        var citySprite = new PIXI.Sprite(texture);
+        citySprite.position.x = centerTile.position.x;
+        citySprite.position.y = centerTile.position.y;
+        this.addChild(citySprite);
+    }
+};
 IslandLayer.prototype._setEdgeTileTextures = function (tile)
 {
     var texture;
@@ -95,6 +120,7 @@ IslandLayer.prototype._findAllConnectedIslands = function ()
     for (var i = 0; i < this.grid.length; i++) {
         marked.push({});
     }
+    var count = 0;
     var self = this;
     for (var row = 0; row < this.rows; row++) {
         for (var col = 0; col < this.cols; col++) {
@@ -102,13 +128,21 @@ IslandLayer.prototype._findAllConnectedIslands = function ()
             if (!tile || marked[row][col]) {
                 continue;
             }
-            var color = Random.chance(70) ? "landGreen" : "landBlue";
+            var color;
+            if (Random.chance(70)) {
+                color = "grass";
+            } else if (Random.chance(70)) {
+                color = "tundra";
+            } else {
+                color = "desert";
+            }
             var island = [tile];
             island.color = color;
             self.islands.push(island);
             markAllConnections(tile, island, color);
         }
     }
+    console.log(count);
     function markAllConnections (tile, island, color)
     {
         if (!tile) {
@@ -117,8 +151,10 @@ IslandLayer.prototype._findAllConnectedIslands = function ()
         if (marked[tile.row][tile.col]) {
             return;
         }
+        count++;
         marked[tile.row][tile.col] = true;
         tile.islandColor = color;
+        island.push(tile);
 
         if (self.grid[tile.row - 1]) {
             markAllConnections(self.grid[tile.row-1][tile.col], island, color);

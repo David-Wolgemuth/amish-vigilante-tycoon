@@ -1,20 +1,22 @@
 
+var landDirections = ["topLeft", "topMid", "topRight",
+        "bottomLeft", "bottomMid", "bottomRight",
+        "full", "left", "right",
+        "fullTopLeft", "fullTopRight", "fullBottomLeft", "fullBottomRight"];
+
+var cityMarkers = [];
+for (var i = 0; i <= 20; i++) {
+    cityMarkers.push(i);
+}
+
 var TEXTURES = [
     ["water", 
         ["water", "water2", "water3"]
     ],
-    ["landBlue", 
-        ["topLeft", "topMid", "topRight",
-        "bottomLeft", "bottomMid", "bottomRight",
-        "full", "left", "right",
-        "fullTopLeft", "fullTopRight", "fullBottomLeft", "fullBottomRight"]
-    ],
-    ["landGreen", 
-        ["topLeft", "topMid", "topRight",
-        "bottomLeft", "bottomMid", "bottomRight",
-        "full", "left", "right",
-        "fullTopLeft", "fullTopRight", "fullBottomLeft", "fullBottomRight"]
-    ]
+    ["grass", landDirections],
+    ["desert", landDirections],
+    ["tundra", landDirections],
+    ["cityMarker", cityMarkers]
 ];
 
 function TexturesLoader ()

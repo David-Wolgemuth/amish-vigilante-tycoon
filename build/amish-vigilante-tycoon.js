@@ -21,7 +21,6 @@ Textures.load()
     stage.addChild(map);
     renderer.render(stage);
 
-
     document.addEventListener("mousedown", function (event) {
         map.dragging = true;
     });
@@ -42,9 +41,10 @@ Textures.load()
 
 });
 
-},{"./scripts/map.js":3,"./scripts/textures.js":5}],2:[function(require,module,exports){
+},{"./scripts/map.js":3,"./scripts/textures.js":6}],2:[function(require,module,exports){
 
 var Random = require("./random.js");
+var Sort = require("./sort.js");
 var Tile = require("./tile.js");
 var Textures = require("./textures.js");
 
@@ -91,12 +91,36 @@ IslandLayer.prototype._init = function ()
         this._createRandomIsland();
     }
     this._findAllConnectedIslands();
+    this._sortIslandsBySize();
     var self = this;
     this.eachTile(function (tile) {
         self._setEdgeTileTextures(tile);
     });
 };
+IslandLayer.prototype._sortIslandsBySize = function ()
+{
+    console.log(this.islands);
+    Sort.insertion(this.islands, function (a, b) {
+        return a.length < b.length;
+    });
+    console.log(this.islands);
+    for (var i = 0; i < this.islands.length; i++) {
+        Sort.insertion(this.islands[i], function (a, b) {
+            return a.col + a.row < b.col + b.row;
+        });
+    }
+    var order = 1;
+    for (var i = this.islands.length - 1; i >= 0; i--) {
+        var island = this.islands[i];
+        var centerTile = island[Math.floor(island.length/2)];
 
+        var texture = (order >= 20) ? Textures.cityMarker[0] : Textures.cityMarker[order];
+        var citySprite = new PIXI.Sprite(texture);
+        citySprite.position.x = centerTile.position.x;
+        citySprite.position.y = centerTile.position.y;
+        this.addChild(citySprite);
+    }
+};
 IslandLayer.prototype._setEdgeTileTextures = function (tile)
 {
     var texture;
@@ -140,6 +164,7 @@ IslandLayer.prototype._findAllConnectedIslands = function ()
     for (var i = 0; i < this.grid.length; i++) {
         marked.push({});
     }
+    var count = 0;
     var self = this;
     for (var row = 0; row < this.rows; row++) {
         for (var col = 0; col < this.cols; col++) {
@@ -147,13 +172,21 @@ IslandLayer.prototype._findAllConnectedIslands = function ()
             if (!tile || marked[row][col]) {
                 continue;
             }
-            var color = Random.chance(70) ? "landGreen" : "landBlue";
+            var color;
+            if (Random.chance(70)) {
+                color = "grass";
+            } else if (Random.chance(70)) {
+                color = "tundra";
+            } else {
+                color = "desert";
+            }
             var island = [tile];
             island.color = color;
             self.islands.push(island);
             markAllConnections(tile, island, color);
         }
     }
+    console.log(count);
     function markAllConnections (tile, island, color)
     {
         if (!tile) {
@@ -162,8 +195,10 @@ IslandLayer.prototype._findAllConnectedIslands = function ()
         if (marked[tile.row][tile.col]) {
             return;
         }
+        count++;
         marked[tile.row][tile.col] = true;
         tile.islandColor = color;
+        island.push(tile);
 
         if (self.grid[tile.row - 1]) {
             markAllConnections(self.grid[tile.row-1][tile.col], island, color);
@@ -200,7 +235,7 @@ IslandLayer.prototype._createRandomIsland = function ()
         }
     }
 };
-},{"./random.js":4,"./textures.js":5,"./tile.js":6}],3:[function(require,module,exports){
+},{"./random.js":4,"./sort.js":5,"./textures.js":6,"./tile.js":7}],3:[function(require,module,exports){
 
 var IslandLayer = require("./island-layer.js");
 var WaterLayer = require("./water-layer.js");
@@ -244,7 +279,7 @@ Map.prototype.zoom = function (x, y, delta)
     this.scale.x = this.scale.y = this._zoom;
 };
 
-},{"./island-layer.js":2,"./water-layer.js":7}],4:[function(require,module,exports){
+},{"./island-layer.js":2,"./water-layer.js":8}],4:[function(require,module,exports){
 
 module.exports = {
     range: function (min, max)
@@ -258,22 +293,44 @@ module.exports = {
 };
 },{}],5:[function(require,module,exports){
 
+module.exports = {
+    insertion: function (arr, compare)
+    {
+        for (var i = 1; i < arr.length; i++) {
+            var held = arr[i];
+            var index = 0;
+            for (var runner = i - 1; runner >= 0; runner--) {
+                if (compare(arr[runner], held)) {
+                    index = runner + 1;
+                    break;
+                }
+                arr[runner + 1] = arr[runner];
+            }
+            arr[index] = held;
+        }
+    }
+};
+
+},{}],6:[function(require,module,exports){
+
+var landDirections = ["topLeft", "topMid", "topRight",
+        "bottomLeft", "bottomMid", "bottomRight",
+        "full", "left", "right",
+        "fullTopLeft", "fullTopRight", "fullBottomLeft", "fullBottomRight"];
+
+var cityMarkers = [];
+for (var i = 0; i <= 20; i++) {
+    cityMarkers.push(i);
+}
+
 var TEXTURES = [
     ["water", 
         ["water", "water2", "water3"]
     ],
-    ["landBlue", 
-        ["topLeft", "topMid", "topRight",
-        "bottomLeft", "bottomMid", "bottomRight",
-        "full", "left", "right",
-        "fullTopLeft", "fullTopRight", "fullBottomLeft", "fullBottomRight"]
-    ],
-    ["landGreen", 
-        ["topLeft", "topMid", "topRight",
-        "bottomLeft", "bottomMid", "bottomRight",
-        "full", "left", "right",
-        "fullTopLeft", "fullTopRight", "fullBottomLeft", "fullBottomRight"]
-    ]
+    ["grass", landDirections],
+    ["desert", landDirections],
+    ["tundra", landDirections],
+    ["cityMarker", cityMarkers]
 ];
 
 function TexturesLoader ()
@@ -310,7 +367,7 @@ function TexturesLoader ()
 }
 
 module.exports = new TexturesLoader();
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 
 var Textures = require("./textures.js");
 
@@ -326,7 +383,7 @@ function Tile (col, row)
     this.row = row;
 }
 
-},{"./textures.js":5}],7:[function(require,module,exports){
+},{"./textures.js":6}],8:[function(require,module,exports){
 
 var Textures = require("./textures.js");
 
@@ -347,4 +404,4 @@ function WaterLayer (rows, cols)
         }
     } 
 }
-},{"./textures.js":5}]},{},[1]);
+},{"./textures.js":6}]},{},[1]);
