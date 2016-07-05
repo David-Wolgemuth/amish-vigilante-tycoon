@@ -11,7 +11,7 @@ gulp.task("browserify", function() {
         gutil.log("Gulp Error:", err);
     })
     .pipe(source("amish-vigilante-tycoon.js"))
-    .pipe(gulp.dest("./dist"));
+    .pipe(gulp.dest("./build"));
 });
 
 gulp.task("watch", function () {

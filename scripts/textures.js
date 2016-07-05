@@ -1,7 +1,7 @@
 
 var TEXTURES = [
     ["water", 
-        ["water"]
+        ["water", "water2", "water3"]
     ],
     ["landBlue", 
         ["topLeft", "topMid", "topRight",
