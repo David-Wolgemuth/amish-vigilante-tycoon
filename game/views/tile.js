@@ -1,5 +1,5 @@
 
-var Textures = require("./textures.js");
+var Textures = require("../models/textures.js");
 
 Tile.prototype = new PIXI.Sprite();
 Tile.prototype.constructor = Tile;

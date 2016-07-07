@@ -1,6 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 
-var Map = require("./scripts/map.js");
+var Map = require("./views/map.js");
 
 var renderer = new PIXI.autoDetectRenderer(600, 600);
 renderer.autoResize = true;
@@ -10,7 +10,7 @@ document.body.appendChild(renderer.view);
 var stage = new PIXI.Container();
 renderer.render(stage);
 
-var Textures = require("./scripts/textures.js");
+var Textures = require("./models/textures.js");
 Textures.load()
 .then(function () {
 
@@ -41,12 +41,100 @@ Textures.load()
 
 });
 
-},{"./scripts/map.js":3,"./scripts/textures.js":6}],2:[function(require,module,exports){
+},{"./models/textures.js":4,"./views/map.js":6}],2:[function(require,module,exports){
 
-var Random = require("./random.js");
-var Sort = require("./sort.js");
+module.exports = {
+    range: function (min, max)
+    {
+        return Math.floor(Math.random() * (max - min)) + min;
+    },
+    chance: function (percent)
+    {
+        return Math.random() < (percent * 0.01);
+    }
+};
+},{}],3:[function(require,module,exports){
+
+module.exports = {
+    insertion: function (arr, compare)
+    {
+        for (var i = 1; i < arr.length; i++) {
+            var held = arr[i];
+            var index = 0;
+            for (var runner = i - 1; runner >= 0; runner--) {
+                if (compare(arr[runner], held)) {
+                    index = runner + 1;
+                    break;
+                }
+                arr[runner + 1] = arr[runner];
+            }
+            arr[index] = held;
+        }
+    }
+};
+
+},{}],4:[function(require,module,exports){
+
+var landDirections = ["topLeft", "topMid", "topRight",
+        "bottomLeft", "bottomMid", "bottomRight",
+        "full", "left", "right",
+        "fullTopLeft", "fullTopRight", "fullBottomLeft", "fullBottomRight"];
+
+var cityMarkers = [];
+for (var i = 0; i <= 20; i++) {
+    cityMarkers.push(i);
+}
+
+var TEXTURES = [
+    ["water", 
+        ["water", "water2", "water3"]
+    ],
+    ["grass", landDirections],
+    ["desert", landDirections],
+    ["tundra", landDirections],
+    ["cityMarker", cityMarkers]
+];
+
+function TexturesLoader ()
+{
+    var self = this;
+    this.load = function ()
+    {
+        var promise = new Promise(function (resolve, reject) {
+            var loader = PIXI.loader;
+            for (var i = 0; i < TEXTURES.length; i++) {
+                var dir = TEXTURES[i];
+                var dirname = dir[0];
+                for (var j = 0; j < dir[1].length; j++) {
+                    var texture = dir[1][j];
+                    loader.add(dirname+texture, "images/" + dirname + "/" + texture + ".png");
+                }
+            }
+            loader.load(function (loader, resources) {
+                for (var i = 0; i < TEXTURES.length; i++) {
+                    var dir = TEXTURES[i];
+                    var dirname = dir[0];
+                    self[dirname] = {};
+                    for (var j = 0; j < dir[1].length; j++) {
+                        var texture = dir[1][j];
+                        self[dirname][texture] = resources[dirname+texture].texture;
+                    }
+                }
+                console.log(self);
+                resolve();
+            });
+        });
+        return promise;
+    };
+}
+
+module.exports = new TexturesLoader();
+},{}],5:[function(require,module,exports){
+
+var Random = require("../models/random.js");
+var Sort = require("../models/sort.js");
 var Tile = require("./tile.js");
-var Textures = require("./textures.js");
+var Textures = require("../models/textures.js");
 
 IslandLayer.prototype = new PIXI.Container();
 IslandLayer.prototype.constructor = IslandLayer;
@@ -235,14 +323,14 @@ IslandLayer.prototype._createRandomIsland = function ()
         }
     }
 };
-},{"./random.js":4,"./sort.js":5,"./textures.js":6,"./tile.js":7}],3:[function(require,module,exports){
+},{"../models/random.js":2,"../models/sort.js":3,"../models/textures.js":4,"./tile.js":7}],6:[function(require,module,exports){
 
 var IslandLayer = require("./island-layer.js");
 var WaterLayer = require("./water-layer.js");
 
 Map.prototype = new PIXI.Container();
 Map.prototype.constructor = Map;
-
+  
 module.exports = Map;
 
 function Map (rows, cols)
@@ -279,97 +367,9 @@ Map.prototype.zoom = function (x, y, delta)
     this.scale.x = this.scale.y = this._zoom;
 };
 
-},{"./island-layer.js":2,"./water-layer.js":8}],4:[function(require,module,exports){
+},{"./island-layer.js":5,"./water-layer.js":8}],7:[function(require,module,exports){
 
-module.exports = {
-    range: function (min, max)
-    {
-        return Math.floor(Math.random() * (max - min)) + min;
-    },
-    chance: function (percent)
-    {
-        return Math.random() < (percent * 0.01);
-    }
-};
-},{}],5:[function(require,module,exports){
-
-module.exports = {
-    insertion: function (arr, compare)
-    {
-        for (var i = 1; i < arr.length; i++) {
-            var held = arr[i];
-            var index = 0;
-            for (var runner = i - 1; runner >= 0; runner--) {
-                if (compare(arr[runner], held)) {
-                    index = runner + 1;
-                    break;
-                }
-                arr[runner + 1] = arr[runner];
-            }
-            arr[index] = held;
-        }
-    }
-};
-
-},{}],6:[function(require,module,exports){
-
-var landDirections = ["topLeft", "topMid", "topRight",
-        "bottomLeft", "bottomMid", "bottomRight",
-        "full", "left", "right",
-        "fullTopLeft", "fullTopRight", "fullBottomLeft", "fullBottomRight"];
-
-var cityMarkers = [];
-for (var i = 0; i <= 20; i++) {
-    cityMarkers.push(i);
-}
-
-var TEXTURES = [
-    ["water", 
-        ["water", "water2", "water3"]
-    ],
-    ["grass", landDirections],
-    ["desert", landDirections],
-    ["tundra", landDirections],
-    ["cityMarker", cityMarkers]
-];
-
-function TexturesLoader ()
-{
-    var self = this;
-    this.load = function ()
-    {
-        var promise = new Promise(function (resolve, reject) {
-            var loader = PIXI.loader;
-            for (var i = 0; i < TEXTURES.length; i++) {
-                var dir = TEXTURES[i];
-                var dirname = dir[0];
-                for (var j = 0; j < dir[1].length; j++) {
-                    var texture = dir[1][j];
-                    loader.add(dirname+texture, "images/" + dirname + "/" + texture + ".png");
-                }
-            }
-            loader.load(function (loader, resources) {
-                for (var i = 0; i < TEXTURES.length; i++) {
-                    var dir = TEXTURES[i];
-                    var dirname = dir[0];
-                    self[dirname] = {};
-                    for (var j = 0; j < dir[1].length; j++) {
-                        var texture = dir[1][j];
-                        self[dirname][texture] = resources[dirname+texture].texture;
-                    }
-                }
-                console.log(self);
-                resolve();
-            });
-        });
-        return promise;
-    };
-}
-
-module.exports = new TexturesLoader();
-},{}],7:[function(require,module,exports){
-
-var Textures = require("./textures.js");
+var Textures = require("../models/textures.js");
 
 Tile.prototype = new PIXI.Sprite();
 Tile.prototype.constructor = Tile;
@@ -383,9 +383,9 @@ function Tile (col, row)
     this.row = row;
 }
 
-},{"./textures.js":6}],8:[function(require,module,exports){
+},{"../models/textures.js":4}],8:[function(require,module,exports){
 
-var Textures = require("./textures.js");
+var Textures = require("../models/textures.js");
 
 WaterLayer.prototype = new PIXI.Container();
 WaterLayer.prototype.constructor = WaterLayer;
@@ -404,4 +404,4 @@ function WaterLayer (rows, cols)
         }
     } 
 }
-},{"./textures.js":6}]},{},[1]);
+},{"../models/textures.js":4}]},{},[1]);

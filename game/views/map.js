@@ -4,7 +4,7 @@ var WaterLayer = require("./water-layer.js");
 
 Map.prototype = new PIXI.Container();
 Map.prototype.constructor = Map;
-
+  
 module.exports = Map;
 
 function Map (rows, cols)

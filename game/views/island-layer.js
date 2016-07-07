@@ -1,8 +1,8 @@
 
-var Random = require("./random.js");
-var Sort = require("./sort.js");
+var Random = require("../models/random.js");
+var Sort = require("../models/sort.js");
 var Tile = require("./tile.js");
-var Textures = require("./textures.js");
+var Textures = require("../models/textures.js");
 
 IslandLayer.prototype = new PIXI.Container();
 IslandLayer.prototype.constructor = IslandLayer;

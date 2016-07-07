@@ -1,5 +1,5 @@
 
-var Textures = require("./textures.js");
+var Textures = require("../models/textures.js");
 
 WaterLayer.prototype = new PIXI.Container();
 WaterLayer.prototype.constructor = WaterLayer;

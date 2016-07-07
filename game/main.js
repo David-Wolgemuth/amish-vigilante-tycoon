@@ -1,5 +1,5 @@
 
-var Map = require("./scripts/map.js");
+var Map = require("./views/map.js");
 
 var renderer = new PIXI.autoDetectRenderer(600, 600);
 renderer.autoResize = true;
@@ -9,7 +9,7 @@ document.body.appendChild(renderer.view);
 var stage = new PIXI.Container();
 renderer.render(stage);
 
-var Textures = require("./scripts/textures.js");
+var Textures = require("./models/textures.js");
 Textures.load()
 .then(function () {
 
